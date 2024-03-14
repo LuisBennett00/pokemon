@@ -6,6 +6,7 @@ import numpy as np
 import requests
 
 st.title("Pokemon Explorer!")
+st.divider()
 
 @st.cache_data
 def get_all_id_numbers():
@@ -85,6 +86,7 @@ x = 'Pokemon',
 y = 'Heights',
 palette = colors)
 
+st.divider()
 st.write(f'Name: {name.title()}')
 st.divider()
 st.write(f'Height: {height}')
