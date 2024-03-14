@@ -9,21 +9,36 @@ st.title("Pokemon Explorer!")
 
 @st.cache_data
 def get_all_id_numbers():
-    count = 0
-    poke_num = 1
+    base_url = 'https://pokeapi.co/api/v2/pokemon/'
+    current_id = 1
+    pokemon_ids = []
 
-    base_url = f'https://pokeapi.co/api/v2/pokemon/{poke_num}/'
-    
+    while True:
+        url = f'{base_url}{current_id}'
+        response = requests.get(url)
 
+        if response.status_code == 200:
+            data = response.json()
+            pokemon_id = data.get('id')
+            if pokemon_id:
+                pokemon_ids.append(pokemon_id)
+            else:
+                break
+        else:
+            break
+        
+        current_id += 1
+        
+    ids = len(pokemon_ids)
+    return ids
 
-    return list_of_all_numbers
 
 def get_details(poke_number):
 	try:
 		url = f'https://pokeapi.co/api/v2/pokemon/{poke_number}/'
 		response = requests.get(url)
 		pokemon = response.json()
-		return pokemon['name'], pokemon['height'], pokemon['weight'], pokemon['sprites']['other']['official-artwork']['front_default'], pokemon['cries']['latest'], len(pokemon['moves'])
+		return pokemon['name'], pokemon['height'], pokemon['weight'], pokemon['sprites']['other']['official-artwork']['front_default'], pokemon['types'][0]['type']['name'], pokemon['cries']['latest'], len(pokemon['moves'])
 	except:
 		return 'Error', np.NAN, np.NAN, np.NAN
 	
@@ -33,14 +48,37 @@ pokemon_number = st.slider("Pick a pokemon",
 						   max_value=1025
 						   )
 
-name, height, weight, front_default, battle_cry, moves = get_details(pokemon_number)
+name, height, weight, front_default, pok_type, battle_cry, moves = get_details(pokemon_number)
 height = height * 10
 
+pokemon_colours = {
+    "normal": "#A8A878",
+    "fire": "#F08030",
+    "water": "#6890F0",
+    "electric": "#F8D030",
+    "grass": "#78C850",
+    "ice": "#98D8D8",
+    "fighting": "#C03028",
+    "poison": "#A040A0",
+    "ground": "#E0C068",
+    "flying": "#A890F0",
+    "psychic": "#F85888",
+    "bug": "#A8B820",
+    "rock": "#B8A038",
+    "ghost": "#705898",
+    "dragon": "#7038F8",
+    "dark": "#705848",
+    "steel": "#B8B8D0",
+    "fairy": "#EE99AC",
+    "stellar": "#FFD700"  
+}
+
+colour = pokemon_colours.get(pok_type)
 
 height_data = pd.DataFrame({'Pokemon' : ['Weedle',name, 'victreebel'],
                'Heights' : [3, height, 17]})
 
-colors = ['gray', 'red', 'gray']
+colors = ['gray', colour, 'gray']
 
 graph = sns.barplot(data = height_data,
 x = 'Pokemon',
@@ -58,6 +96,7 @@ st.divider()
 st.image(front_default, caption = f'Pokemon: {name}')
 st.divider()
 st.pyplot(graph.figure)
+st.divider()
 
 if battle_cry:
     battle_cry_audio_response = requests.get(battle_cry)
